@@ -1,64 +1,90 @@
-    // //const API_URL = "http://127.0.0.1:8080/api/ip";
-    //     const API_URL = "https://gg-team-repo-git-web-communication-and-databases-1.2.rahtiapp.fi/api/ip";
-    //     async function getIP(){
-    //         const res = await fetch(API_URL);
-    //         const data = await res.text();
-    //         document.getElementById("ip-output").textContent = data;
-    //     }
+const API_URL = "http://127.0.0.1:8080/api";
 
-        //const Hotel_Api_URL = "https://gg-team-repo-git-web-communication-and-databases-1.2.rahtiapp.fi/api/rooms";
-        const Api_URL = "http://127.0.0.1:8080/api/rooms";
-        async function getRooms(){
-            const res = await fetch(Api_URL);
-            const data = await res.json();
-            const rooms = data.hotel_rooms ? data.hotel_rooms : data;
+async function getGuests() {
+    const res = await fetch(`${API_URL}/guests`);
+    const data = await res.json();
+    const guests = data.hotel_guests ? data.hotel_guests : data;
+    const guestSelect = document.getElementById("guest-select");
 
-            for (const room of rooms) {
-                document.getElementById("rooms-output").innerHTML +=
-                `<li>${room.room_number} ${room.room_type} $${room.price}</li>`;
-            }
-        }
-        //getIP()
-        getRooms()
+    guestSelect.innerHTML = "";
+    for (const guest of guests) {
+        guestSelect.innerHTML += `
+            <option value="${guest.id}">
+                ${guest.firstname} ${guest.lastname} (${guest.previous_visits} visits)
+            </option>
+        `;
+    }
+}
 
-        document.getElementById("submit-button").addEventListener("click", async () => {
-            const checkInDate = document.getElementById("check-in-date").value;
-            const checkOutDate = document.getElementById("check-out-date").value;
-            const additionalInfo = document.getElementById("additional-info").value;
-            const selectedRoomId = document.getElementById("room-select").value;
+async function getRooms() {
+    const res = await fetch(`${API_URL}/rooms`);
+    const data = await res.json();
+    const rooms = data.hotel_rooms ? data.hotel_rooms : data;
+    const roomList = document.getElementById("rooms-output");
+    const roomSelect = document.getElementById("room-select");
 
+    roomList.innerHTML = "";
+    roomSelect.innerHTML = "";
 
+    for (const room of rooms) {
+        roomList.innerHTML += `
+            <li>
+                Room ${room.room_number} - ${room.room_type} - ${room.price} EUR
+            </li>
+        `;
+        roomSelect.innerHTML += `
+            <option value="${room.id}">
+                ${room.room_number} - ${room.room_type} - ${room.price} EUR
+            </option>
+        `;
+    }
+}
 
-            const response = await fetch("http://127.0.0.1:8080/api/booking", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "guest_id": 1,
-                    "room_id": selectedRoomId,
-                    "datefrom": checkInDate,
-                    "dateto": checkOutDate,
-                    "addinfo": additionalInfo
-                })
-            });
+async function getBookings() {
+    const res = await fetch(`${API_URL}/bookings`);
+    const data = await res.json();
+    const bookings = data.hotel_bookings ? data.hotel_bookings : data;
+    const bookingsList = document.getElementById("bookings-output");
 
-            if (response.ok) {
-                alert("Booking successful!");
-            } else {
-                alert("Booking failed.");
-            }
-        });
+    bookingsList.innerHTML = "";
+    for (const booking of bookings) {
+        const infoText = booking.info || booking.addinfo || "";
+        bookingsList.innerHTML += `
+            <li>
+                Room ${booking.room_number} - ${booking.guest_name} - ${booking.datefrom} to ${booking.dateto}
+                (${booking.nights} nights, ${booking.total_price} EUR) ${infoText}
+            </li>
+        `;
+    }
+}
 
-        async function getBookings() {
-            document.getElementById("bookings-output").innerHTML = "";
-            const bookings = await fetch("http://127.0.0.1:8080/api/bookings");
-            const bookingsData = await bookings.json();
-            const bookingsList = bookingsData.hotel_bookings ? bookingsData.hotel_bookings : bookingsData;
+async function saveBooking() {
+    const booking = {
+        guest_id: document.getElementById("guest-select").value,
+        room_id: document.getElementById("room-select").value,
+        datefrom: document.getElementById("check-in-date").value,
+        dateto: document.getElementById("check-out-date").value,
+        info: document.getElementById("additional-info").value
+    };
 
-            for (const booking of bookingsList) {
-                document.getElementById("bookings-output").innerHTML +=
-                    `<li>Room ${booking.room_id} booked from ${booking.datefrom} to ${booking.dateto}. Additional info: ${booking.addinfo}</li>`;
-            }
-        }
-        getBookings();
+    const res = await fetch(`${API_URL}/bookings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(booking)
+    });
+
+    if (!res.ok) {
+        alert("Booking failed.");
+        return;
+    }
+
+    document.getElementById("additional-info").value = "";
+    alert("Booking successful!");
+    getBookings();
+}
+
+document.getElementById("submit-button").addEventListener("click", saveBooking);
+
+getGuests();
+getRooms();
+getBookings();

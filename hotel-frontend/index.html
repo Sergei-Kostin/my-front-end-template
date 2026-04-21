@@ -6,21 +6,22 @@
     <title>Document</title>
 </head>
 <body>
-    <h2>Available Rooms</h2>
-    
+    <h2>Hotel Booking</h2>
 
+    <p>Guests:</p>
+    <select id="guest-select"></select>
+
+    <p>Available Rooms:</p>
     <ul id="rooms-output"></ul>
-    <select id="room-select">
-        <option value="1">Room 123</option>
-        <option value="2">Room 234</option>
-    </select>
+    <select id="room-select"></select>
     <input type ="date" id="check-in-date">
     <input type ="date" id="check-out-date">
-    <input type="text" id="additional-info">
+    <textarea id="additional-info" placeholder="Additional info"></textarea>
     <input type="button" id="submit-button" value="Submit">
 
+    <h3>Bookings</h3>
     <ul id="bookings-output"></ul>
 
-     <script src="../script.js"></script>
+    <script src="../script.js"></script>
 </body>
 </html>
